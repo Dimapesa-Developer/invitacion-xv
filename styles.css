@@ -1,0 +1,962 @@
+/* ===========================================================================
+   Invitación de XV años · demostración
+   Paleta y materiales muestreados de las acuarelas originales.
+   =========================================================================== */
+
+:root{
+  /* ── Escala tipográfica ──
+     Había diez tamaños distintos entre 9 y 14 px: 9, 9,5, 10, 10,5, 11, 11,5,
+     12, 12,5, 13 y 13,9. Nadie distingue 9,5 de 10, pero la falta de criterio
+     se nota en el ritmo. Y varios caían por debajo de lo que se lee cómodo en
+     un móvil, sobre todo en Jost 300 con mucho espaciado sobre papel crema.
+     Cuatro escalones para todo lo pequeño, y ninguno baja de 11,5. */
+  --t-micro:  11.5px;   /* etiquetas: tipo de sede, contador, «Desliza» */
+  --t-eti:    12.5px;   /* antetítulos de sección, horas, datos del cierre */
+  --t-accion: 13.5px;   /* botones y llamadas a tocar */
+  --t-dato:   14.5px;   /* las horas de las sedes, que son dato útil */
+  --t-texto:  17px;     /* direcciones y notas: texto para leer, no rótulo */
+
+  --marfil:        #FBF3E9;
+  --marfil-papel:  #F6E9DC;
+  --blanco-calido: #FDF8F2;
+  --campo:         #EFDFD1;
+
+  --rosa-pastel:   #F0C9C7;
+  --rosa-sombra:   #E6BBB8;
+  --rosa-antiguo:  #C8828A;
+  --rosa-velo:     #F7E6E2;
+
+  --oro:           #C08A6E;
+  --oro-claro:     #E0B49C;
+  --salvia:        #96A077;
+
+  --tinta:         #43342E;
+  --tinta-suave:   #6B564E;
+  --tinta-tenue:   #93796E;
+
+  --col: 480px;
+  --serif: 'Cormorant Garamond', 'Times New Roman', serif;
+  --firma: 'Parisienne', 'Cormorant Garamond', cursive;
+  --sans:  'Jost', system-ui, -apple-system, sans-serif;
+
+  --curva: cubic-bezier(.22,.61,.36,1);
+  --curva-salida: cubic-bezier(.33,0,.12,1);
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+[hidden]{ display:none !important; }
+
+/* propiedades animables de la apertura */
+@property --sube   { syntax:'<percentage>'; inherits:false; initial-value:100%; }
+@property --sombra { syntax:'<number>';     inherits:false; initial-value:0;   }
+
+html{
+  background: var(--campo);
+  -webkit-text-size-adjust:100%;
+}
+
+body{
+  margin:0;
+  font-family: var(--serif);
+  color: var(--tinta);
+  background: var(--marfil);
+  max-width: var(--col);
+  margin-inline: auto;
+  overflow-x: clip;
+  position: relative;
+  box-shadow: 0 0 0 1px rgba(160,120,96,.1), 0 10px 70px rgba(110,78,62,.24);
+}
+
+/* textura de algodón sobre todo el documento */
+body::before{
+  content:''; position:fixed; inset:0; z-index:9;
+  pointer-events:none;
+  background:url('assets/papel-marfil.webp') repeat;
+  background-size:360px 360px;
+  opacity:.5; mix-blend-mode:multiply;
+}
+
+img{ max-width:100%; display:block; }
+
+.salta{ position:absolute; margin:0; }
+.salta a{
+  position:absolute; left:-9999px; top:0; z-index:100;
+  background:var(--marfil); color:var(--tinta); padding:.7em 1.1em;
+  font-family:var(--sans); font-size:14px; border:1px solid var(--oro);
+}
+.salta a:focus{ left:8px; top:8px; }
+
+/* mientras el sobre no se abre, la historia no empieza */
+body.sin-abrir{ height:100svh; overflow:hidden; }
+
+/* ═══════════════════ 1 · EL SOBRE ═══════════════════ */
+
+.pantalla-sobre{
+  min-height:100svh;
+  position:relative;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+  padding:0;
+  background: linear-gradient(180deg, #F7EBDC 0%, #F5E8D8 28%, #F3E6D5 72%, #F0E2D1 100%);
+}
+.sobre-centro{
+  display:flex; flex-direction:column; align-items:center;
+  gap: clamp(12px, 2.4svh, 22px);
+  width:100%;
+}
+
+/* La portada ocupa la pantalla entera del móvil. El escenario es el marco y
+   recorta; el lienzo de dentro conserva la proporción exacta del dibujo para
+   que la tarjeta, el lacre y el texto sigan encajando al píxel. */
+.escenario{
+  position:relative;
+  display:grid; place-items:center;
+  width:100%; height:100svh;
+  overflow:hidden;
+  padding:0; margin:0; border:0; background:none;
+  cursor:pointer;
+  transform: scale(var(--empuje,1));
+  transition: transform 2.4s var(--curva);
+  -webkit-tap-highlight-color: transparent;
+}
+/* La hoja se queda a pantalla completa cuando el sobre ya se abrió. Entra
+   creciendo desde donde estaba la tarjeta, así que se lee como que sale de
+   dentro del sobre y se acerca. */
+/* La hoja se ata al ancho de la PANTALLA, no al del lienzo: el lienzo es más
+   ancho que el móvil y, al recortar, se comía la rosa de la esquina.
+   Son dos piezas para poder encadenar dos movimientos distintos: la caja la
+   sube (como si la sacaras del sobre) y, ya arriba, la imagen crece hasta
+   llenar la pantalla. */
+.hoja-caja{
+  position:absolute; top:0; height:100%;
+  left:50%; width:100vw; z-index:3;
+  /* Arranca con su borde superior justo donde está el de la tarjeta en el
+     último fotograma del vídeo: en ese fotograma la tarjeta ya llega de lado a
+     lado de la pantalla, así que la hoja la sustituye sin que se note. */
+  transform: translateX(-50%) translateY(19.3%);
+  transition: transform 1.15s var(--curva);
+  pointer-events:none;
+}
+.hoja{
+  display:block; width:100%; height:100%; object-fit:cover;
+  /* opaca de principio a fin: si se desvanece se ve el sobre a través de ella
+     y parece un fundido sucio en vez de una hoja saliendo */
+}
+body.hoja-fuera .hoja-caja{ transform: translateX(-50%) translateY(0); }
+
+/* El frente del sobre va POR DELANTE de la hoja: así la hoja sale de dentro
+   del bolsillo y no por encima del sobre. Después baja con el resto. */
+.bolsillo{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:fill; z-index:4; pointer-events:none;
+  transition: transform .95s var(--curva);
+}
+body.hoja-fuera .bolsillo{ transform: translateY(52%); }
+
+/* y el sobre se va hacia abajo mientras tanto. Sin desvanecerse: se va
+   deslizando, que es más de verdad, y acaba tapado por la hoja. */
+
+.lienzo{
+  /* La escena ES la pantalla: los vídeos traen su propio fondo de papel hasta
+     el borde, así que no hay proporción que respetar, solo cubrir. */
+  position:relative; display:block;
+  container-type: inline-size;
+  width:100%; height:100svh;
+}
+.escenario:focus-visible{
+  outline:2px solid var(--oro); outline-offset:10px;
+}
+body.abierto .escenario{ cursor:default; }
+
+.capa{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  border-radius:inherit;
+  opacity:0;                      /* el JS las va encendiendo por turnos */
+}
+#capa-poster{ opacity:1; }        /* lo primero que se ve, sin esperar a nada */
+
+/* La hoja entera, apoyada sobre el papel. El relevo con el último fotograma
+   del vídeo es un fundido de poco menos de un segundo mientras ella encoge
+   hasta su tamaño: dos imágenes del mismo papel cruzándose, así que la
+   diferencia de encuadre no se ve, solo el movimiento. */
+/* NO se cruzan las dos hojas: la del vídeo y esta son dibujos distintos, y
+   al fundirlas se veían las cuatro rosas a la vez. Van en relevo por el
+   fondo: primero el papel liso cubre el vídeo, y solo cuando ya lo tapa
+   entera entra la hoja, creciendo hasta posarse. En ningún momento hay dos
+   dibujos encima del otro. */
+.hoja-posada{
+  display:grid; place-items:center;
+  background: var(--marfil-papel);
+  z-index:5; opacity:0;
+  transition: opacity .5s ease;
+}
+.hoja-posada img{
+  width:100%; height:100%; object-fit:contain;
+  /* Margen mínimo y FIJO: lo justo para que se vea que es una hoja apoyada.
+     En vw crecía con la ventana —13 px en escritorio, 7 en el móvil—, y el
+     dibujo va recortado a ras del borde deckle, sin aire propio. */
+  /* El hueco de abajo no es decoración: es la banda donde vive «Desliza».
+     En pantallas anchas la hoja crecía hasta meterse debajo del texto y se
+     encimaban. Reservándola, no se tocan en ninguna proporción. */
+  padding: 0 5px 20svh;
+  opacity:0; transform: scale(1.26);
+  transition: opacity .8s ease .5s, transform 1.3s var(--curva) .5s;
+}
+body.hoja-posada-lista .hoja-posada    { opacity:1; }
+body.hoja-posada-lista .hoja-posada img{ opacity:1; transform:none; }
+#capa-vacio, #capa-abierto, #capa-video{ opacity:0; }
+#capa-video{ object-fit:fill; }
+
+/* la máscara deja ver la tarjeta solo por encima de la V de la solapa */
+.marco-tarjeta{
+  position:absolute; inset:0; display:block;
+  -webkit-mask-image:url('assets/mascara-tarjeta.png');
+          mask-image:url('assets/mascara-tarjeta.png');
+  -webkit-mask-size:100% 66.5072%;
+          mask-size:100% 66.5072%;
+  -webkit-mask-position:top left;  mask-position:top left;
+  -webkit-mask-repeat:no-repeat;   mask-repeat:no-repeat;
+  opacity:0;
+}
+.tarjeta{
+  position:absolute;
+  left:12.9649%; top:23.4450%;
+  width:73.0074%; height:43.0622%;
+  object-fit:fill;
+  transform: translate3d(0, var(--sube, 100%), 0);
+  filter: drop-shadow(0 calc(var(--sombra,0) * 1.4px) calc(var(--sombra,0) * 2.2px) rgba(116,74,62,.26));
+}
+
+/* ── texto HTML dentro del marco real de la tarjeta ── */
+/* El lacre va pegado a la solapa frontal, así que siempre por delante de la
+   tarjeta: si no, al subir la tarjeta lo rebanaría por arriba. */
+.sello-capa{
+  position:absolute;
+  left:41.1265%; top:63.5167%; width:17.0032%; height:9.9880%;
+  object-fit:fill; pointer-events:none;
+  opacity:0;   /* solo existe cuando el sobre ya está abierto */
+}
+
+.carta{
+  /* Centrado sobre la hoja ya posada, con un punto de sesgo hacia arriba:
+     a ras del centro geométrico el texto parece caído. Medido, no a ojo. */
+  position:absolute; left:11%; width:78%; top:41%;
+  z-index:6;
+  display:flex; flex-direction:column; align-items:center;
+  text-align:center; pointer-events:none;
+}
+.carta > *{
+  opacity:0; transform: translateY(8px);
+  transition: opacity .95s var(--curva), transform .95s var(--curva);
+  transition-delay: calc(var(--i) * 140ms);
+}
+body.carta-visible .carta > *{ opacity:1; transform:none; }
+
+/* con la hoja a pantalla completa el texto se centra en ella */
+body.hoja-fuera .carta{ top:38%; left:16%; width:68%; }
+.carta{ z-index:6; }
+
+.carta-cintillo{
+  font-family:var(--serif); font-weight:500;
+  font-size: clamp(11px, calc(var(--hoja-w, 92vw) * .037), 17px); letter-spacing:.44em; text-indent:.44em;
+  text-transform:uppercase; color:var(--tinta-suave);
+  line-height:1;
+}
+.carta-nombre{
+  font-family:var(--firma); font-weight:400;
+  font-size: clamp(32px, calc(var(--hoja-w, 92vw) * .105), 52px); line-height:1.06;
+  color:var(--tinta); margin:.1em 0 0;
+  white-space:nowrap;
+}
+.carta-apellidos{
+  font-family:var(--serif); font-weight:400;
+  font-size: clamp(12px, calc(var(--hoja-w, 92vw) * .042), 19px); letter-spacing:.24em; text-indent:.24em;
+  text-transform:uppercase; color:var(--tinta-suave);
+  margin-top:.9em;
+}
+.carta-fecha{
+  font-family:var(--sans); font-weight:300;
+  font-size: clamp(10px, calc(var(--hoja-w, 92vw) * .030), 14px); letter-spacing:.2em; text-indent:.2em;
+  text-transform:uppercase; color:var(--tinta-tenue);
+  margin-top:1.9em;
+}
+
+/* filete con rombo */
+.filete{ display:flex; align-items:center; gap:.7em; width:52%; margin-top:1.05em; }
+.filete i{ flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--oro-claro),transparent); }
+.filete b{ width:4px; height:4px; background:var(--oro); transform:rotate(45deg); }
+
+/* ── llamada "Toca para abrir" ── */
+/* El pie va debajo del papel, nunca encima: en el borde inferior del dibujo
+   hay capullos pintados y el texto se les montaba. Las dos llamadas comparten
+   casilla, así que no dejan hueco muerto al relevarse. */
+/* Cada llamada va en la franja de papel plano que le toca, medida sobre el
+   propio dibujo: la de «tocar» sobre el papel liso bajo el sobre cerrado, y la
+   de «deslizar» sobre el cuerpo del sobre ya abierto. Como nunca se ven a la
+   vez, cada una puede tener su altura. */
+.pie-sobre{
+  position:absolute; inset:auto 0 0 0; height:0;
+  pointer-events:none;
+}
+.pie-sobre > *{
+  position:absolute; left:0; right:0;
+  display:flex; flex-direction:column; align-items:center;
+}
+.llamada{
+  bottom: calc(18.5svh + env(safe-area-inset-bottom));
+  /* entra medio segundo después de cargar: así el vídeo puede terminar en el
+     fotograma limpio del sobre y el texto aparece ya dentro de la web, sin
+     que se note el corte */
+  animation: aparece-pie 1s var(--curva) .5s both;
+}
+@keyframes aparece-pie{
+  from{ opacity:0; transform:translateY(6px); }
+  to  { opacity:1; transform:none; }
+}
+/* La animación de entrada lleva fill-mode both: mientras siga puesta, manda
+   ella y cualquier opacity:0 que le pongamos se queda sin efecto. Hay que
+   cancelarla, no solo tapar el texto. */
+body.abierto .llamada,
+body.reproduciendo .llamada{ animation:none; }
+.baja   { bottom: calc(9.9svh  + env(safe-area-inset-bottom)); }
+
+.llamada{
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+  transition: opacity .6s ease, transform .6s ease;
+}
+/* Se va en cuanto el vídeo arranca, no al final: durante los siete segundos
+   de apertura seguía invitando a tocar algo que ya estaba abierto. */
+body.abierto .llamada,
+body.reproduciendo .llamada{ opacity:0; transform:translateY(8px); pointer-events:none; }
+.llamada-sello{
+  width:7px; height:7px; border-radius:50%;
+  background:var(--oro);
+  box-shadow:0 0 0 0 rgba(192,138,110,.5);
+  animation: latido 3.4s var(--curva) infinite;
+}
+@keyframes latido{
+  0%,70%,100%{ box-shadow:0 0 0 0 rgba(192,138,110,.45); }
+  35%        { box-shadow:0 0 0 13px rgba(192,138,110,0); }
+}
+.llamada-texto{
+  font-family:var(--sans); font-weight:300;
+  font-size:var(--t-accion); letter-spacing:.36em; text-indent:.36em;
+  text-transform:uppercase; color:var(--tinta-suave);
+}
+
+.baja{
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  color:var(--oro); opacity:0; transform:translateY(-6px);
+  transition:opacity .9s var(--curva) .3s, transform .9s var(--curva) .3s;
+}
+.baja span{
+  font-family:var(--sans); font-weight:300; font-size:var(--t-micro);
+  letter-spacing:.34em; text-indent:.34em; text-transform:uppercase;
+  color:var(--tinta-tenue);
+}
+body.abierto .baja{ opacity:1; transform:none; animation: respira 3.6s ease-in-out 1.6s infinite; }
+@keyframes respira{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(5px) } }
+
+/* ═══════════════════ SECCIONES ═══════════════════ */
+
+main{ display:block; }
+
+.seccion{
+  position:relative;
+  padding: clamp(112px, 20vw, 142px) 0 clamp(96px, 17vw, 124px);
+}
+/* una sola frase en toda la pantalla: el respiro antes de ver la fotografía */
+.s-nota      { background: var(--marfil-papel);
+               /* El primer momento llega solo: pantalla entera y la frase en
+                  medio. Compartiéndola con lo de abajo, no era un momento. */
+               min-height:100svh; display:flex; align-items:center;
+               padding: clamp(120px, 24vw, 160px) 0; }
+/* El momento de la fotografía necesita RECORRIDO, no lentitud: medido, el desvelado
+   ocupaba 227 px de scroll y la bajada de las letras 178. Medio dedo en el
+   móvil, así que un gesto rápido se lo saltaba entero. Ahora la sección mide
+   2,6 pantallas y la escena se queda fija dentro: la fotografía no se mueve,
+   avanza el efecto. Quien pasa deprisa lo ve entero igual; quien va despacio
+   lo saborea. Y no queda papel vacío, porque la foto llena la pantalla todo
+   ese rato. */
+.s-festejada    { background: var(--blanco-calido);
+               min-height: 260svh;
+               padding: clamp(104px, 20vw, 140px) 0 0; }
+.escena-festejada{
+  position:sticky; top:0;
+  min-height:100svh;
+  display:flex; flex-direction:column; justify-content:center;
+}
+/* El puente va en voz baja: es una frase de paso, no un titular. Más pequeña
+   que la de la pantalla anterior para que no compita con ella ni con el nombre
+   que viene después. */
+.parrafo-puente{
+  font-family:var(--serif); font-style:italic; font-weight:300;
+  /* Mismo cuerpo que el mensaje de la pantalla anterior: son dos momentos
+     del mismo peso, y verlo más pequeño lo hacía parecer una nota al pie. */
+  font-size:clamp(18px, 5vw, 21px); line-height:1.72;
+  color:var(--tinta-suave); text-align:center;
+  margin:0 auto; max-width:24ch;
+}
+.s-cuando    { background: var(--marfil-papel); }
+/* la fecha y los lugares son dos hojas del mismo capítulo: comparten tono y
+   las separa el papel rasgado. Respiros algo más cortos: con dos sedes, la
+   página se pasaba de pantalla. */
+.s-donde     { background: var(--marfil-papel);
+               padding: clamp(92px, 17vw, 120px) 0 clamp(76px, 14vw, 100px); }
+.s-itinerario{ background: var(--blanco-calido); }
+/* vestimenta y confirmación tienen página propia: una idea por pantalla */
+.s-vestir    { background: var(--marfil-papel); }
+.s-confirmar { background: var(--blanco-calido); }
+.s-cierre    { background: linear-gradient(180deg, var(--marfil-papel) 0%, var(--rosa-velo) 100%);
+               /* margen alto al pie: deja sitio de scroll para que la rosa
+                  aterrice y el follaje se abra sin prisa */
+               padding-bottom: clamp(330px, 40vh, 420px); }
+
+.envoltorio{ position:relative; z-index:2; padding-inline: clamp(22px, 7vw, 34px); }
+
+/* costuras de papel rasgado entre secciones */
+.costura{
+  position:absolute; top:-2px; left:0; width:100%; height:clamp(26px,6.4vw,40px);
+  background:url('assets/tira-papel.webp') center bottom / 100% 100% no-repeat;
+  z-index:1; pointer-events:none;
+  filter: drop-shadow(0 3px 5px rgba(130,97,80,.1));
+}
+.costura.invertida{ transform:scaleX(-1); }
+
+/* flores que cruzan la unión, a otra velocidad que el papel */
+.flor{
+  position:absolute; z-index:1; pointer-events:none;
+  opacity:.9;
+  will-change: transform;
+  transform: translate3d(0, var(--py, 0px), 0) rotate(var(--giro,0deg)) scaleX(var(--espejo,1));
+}
+.flor-festejada  { width:16%; top:18px;  right:4%;  --giro:4deg; }
+/* La rosa sube hasta encima de la frase puente y adelgaza: a la altura de
+   antes rozaba el final del primer renglón, y el vaivén se lo comía. */
+.flor-cuando  { width:26%; top:100px; left:2%;   --giro:-4deg; opacity:.9; }
+.flor-itin    { width:17%; top:14px;  right:3%;  --giro:6deg; opacity:.88; }
+/* Sube por encima del antetítulo: al crecer el texto de 11 a 12,5 px, la
+   línea «Así celebraremos» se ensanchó y llegaba a tocarla. */
+.flor-cierre-b{ width:32%; bottom:clamp(160px, 22vh, 210px); right:2%; --giro:3deg;
+                opacity:1; aspect-ratio:470/206; }
+
+/* las tres piezas comparten lienzo, así que basta superponerlas */
+.flor-cierre-b > img{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:contain; opacity:.9;
+}
+.cierre-rosa{ transition: opacity .5s ease; }
+.cierre-hoja{
+  transform-origin: 49.15% 54.37%;         /* el centro medido de la flor */
+  transition: transform .78s cubic-bezier(.22,.88,.3,1), opacity .52s ease;
+}
+/* mientras hay animación se parte de la rosa sola; sin JS o sin movimiento,
+   el cierre se ve entero desde el principio */
+.flor-cierre-b.monta .cierre-rosa{ opacity:0; }
+.flor-cierre-b.monta .cierre-hoja{ opacity:0; transform: scale(.48) rotate(var(--vuelco,0deg)); }
+.flor-cierre-b.monta.posada .cierre-rosa{ opacity:.9; }
+.flor-cierre-b.monta.posada .cierre-hoja{ opacity:.9; transform:none; }
+.cierre-izq{ --vuelco:-9deg; transition-delay:.12s; }
+.cierre-der{ --vuelco: 9deg; transition-delay:.28s; }
+
+/* ── tipografía de sección ── */
+.antetitulo{
+  font-family:var(--sans); font-weight:300;
+  font-size:var(--t-eti); letter-spacing:.42em; text-indent:.42em;
+  text-transform:uppercase; color:var(--tinta-tenue);
+  text-align:center; margin:0 0 14px;
+}
+.titulo{
+  font-family:var(--serif); font-weight:300;
+  font-size:clamp(34px,10vw,46px); line-height:1.1;
+  text-align:center; margin:0 0 30px; color:var(--tinta);
+}
+.titulo-festejada{ margin:0 0 30px; text-align:center; }
+
+/* ── la invitación bajo la fotografía ──
+   No usa el observer de revelados: entra cuando las rosas acaban de abrirse,
+   y lo hace con transiciones, que siguen corriendo aunque el scroll se pare. */
+.invitacion{
+  text-align:center; margin-top: clamp(22px, 5.5vw, 32px);
+  position:relative; z-index:3;
+  /* --viaje: 1 = las letras están sobre la fotografía · 0 = ya posadas abajo.
+     Mientras van encima van en marfil, para que se lean sobre el vestido, y
+     se vuelven tinta al bajar al papel. */
+  --viaje:0;
+  transform: translateY(calc(var(--viaje) * var(--baja-inv, 0) * -1px));
+  color: var(--tinta);
+  color: color-mix(in oklab, var(--blanco-calido) calc(var(--viaje) * 100%), var(--tinta));
+  /* Relieve, no mancha: sombras de radio corto que abrazan el trazo de la
+     letra. Una sombra amplia emborrona la fotografía; estas solo despegan el
+     texto del fondo, como un grabado. Se apagan al bajar al papel. */
+  /* Un contorno fino alrededor del trazo —arriba, abajo y a los lados— más
+     una sombra corta debajo. Recorta la letra contra el vestido sin manchar
+     la fotografía, que es lo que pasaba con el halo ancho. */
+  text-shadow:
+    0 -1px 0   rgba(48, 30, 26, calc(var(--viaje) * .50)),
+    1px 0  0   rgba(48, 30, 26, calc(var(--viaje) * .50)),
+    0  1px 0   rgba(48, 30, 26, calc(var(--viaje) * .50)),
+   -1px 0  0   rgba(48, 30, 26, calc(var(--viaje) * .50)),
+    0  2px 4px rgba(48, 30, 26, calc(var(--viaje) * .55)),
+    0  3px 10px rgba(48, 30, 26, calc(var(--viaje) * .30));
+}
+
+/* Las líneas pequeñas llevan el relieve más apretado todavía: a ese tamaño,
+   un halo ancho se las come en vez de destacarlas. */
+.invitacion .inv-ep, .invitacion .inv-pie-a, .invitacion .inv-xv{
+  text-shadow:
+    0 -1px 0   rgba(48, 30, 26, calc(var(--viaje) * .78)),
+    1px 0  0   rgba(48, 30, 26, calc(var(--viaje) * .78)),
+    0  1px 0   rgba(48, 30, 26, calc(var(--viaje) * .78)),
+   -1px 0  0   rgba(48, 30, 26, calc(var(--viaje) * .78)),
+    1px 1px 0  rgba(48, 30, 26, calc(var(--viaje) * .62)),
+   -1px 1px 0  rgba(48, 30, 26, calc(var(--viaje) * .62)),
+    0  2px 5px rgba(48, 30, 26, calc(var(--viaje) * .50));
+}
+.invitacion .inv-ep {
+  color:inherit; opacity: calc(.74 + var(--viaje) * .26);
+  /* sobre el vestido crece y engorda un punto: a 13 px y en fino se perdía */
+  font-size: calc(13px + var(--viaje) * 2px);
+  font-weight: calc(400 + var(--viaje) * 100);
+  letter-spacing:.48em; text-indent:.48em;
+}
+.invitacion .firma  { color:inherit; }
+/* La frase de abajo va en dos pisos: la entradilla en voz baja y «XV AÑOS»
+   en grande y en versales. Es el dato que cierra la historia —a qué se
+   invita—, así que es lo único que puede competir con el nombre. */
+.invitacion .inv-pie{
+  color:inherit; display:flex; flex-direction:column; align-items:center;
+  margin-top: calc(9px + var(--viaje) * 3px);
+}
+.invitacion .inv-pie-a{
+  font-family:var(--serif); font-style:italic; font-weight:300;
+  font-size: calc(clamp(16px, 4.4vw, 19px) + var(--viaje) * 1px);
+  opacity: calc(.82 + var(--viaje) * .18);
+  line-height:1.3;
+}
+.invitacion .inv-xv{
+  font-family:var(--serif); font-style:normal;
+  font-weight: calc(400 + var(--viaje) * 100);
+  font-size: calc(clamp(22px, 6.6vw, 30px) + var(--viaje) * 2px);
+  letter-spacing:.3em; text-indent:.3em;
+  text-transform:uppercase; line-height:1.1;
+  margin-top:.34em;
+}
+.invitacion .titulo-festejada{ margin:0; }
+.inv-pie{
+  font-family:var(--serif); font-style:italic; font-weight:300;
+  font-size:clamp(16px, 4.4vw, 19px); line-height:1.5;
+  color:var(--tinta-suave); margin:8px 0 0; text-align:center;
+}
+.invitacion > *{
+  transition: opacity .82s ease, transform .82s cubic-bezier(.22,.88,.3,1);
+}
+.s-festejada.monta .invitacion > *{ opacity:0; transform: translateY(20px); }
+.s-festejada.monta.descubierta .invitacion > *{ opacity:1; transform:none; }
+.invitacion .inv-nom{ transition-delay:.16s; }
+.invitacion .inv-pie{ transition-delay:.34s; }
+.firma{
+  font-family:var(--firma); font-weight:400;
+  font-size:clamp(38px,12.6vw,56px); line-height:1.1;
+  color:var(--tinta); display:block;
+}
+.parrafo-grande{
+  font-family:var(--serif); font-style:italic; font-weight:300;
+  font-size:clamp(18px,5vw,21px); line-height:1.72;
+  color:var(--tinta-suave); text-align:center;
+  margin: 26px auto 0; max-width:34ch;
+}
+
+/* ── retrato: a todo el ancho, asomando por un rasgado del papel ── */
+.retrato{
+  margin: clamp(34px, 7.5vw, 46px) auto 0;
+  position:relative;
+  z-index:2;
+}
+.retrato-marco{
+  position:relative; overflow:hidden;
+  /* algo más alto que la foto: así el rasgado no muerde la corona ni la cola.
+     El fondo continúa el gris cálido del estudio, muestreado de la propia foto. */
+  --abre: 1; --abre-arriba: 1;
+  aspect-ratio: 1122 / 1620;
+  background: linear-gradient(180deg, #B2A0A0 0%, #C2ACAD 52%, #D0B9BB 100%);
+}
+#foto-portada{
+  width:100%; height:100%; object-fit:contain; object-position:50% 50%;
+  transform:scale(var(--zoom,1));
+}
+/* las guirnaldas cubren la foto y se apartan con el scroll (--abre: 0 → 1) */
+.velo{
+  position:absolute; z-index:2; pointer-events:none;
+  max-width:none;   /* si no, la regla global img las encoge al ancho del marco */
+  top:23%;
+  will-change: transform;
+}
+/* El panel de arriba es el que la cubre a ella: sube y sale de cuadro. */
+.velo-arriba{
+  width:125%; left:-12%; top:-8%;
+  transform: translate3d(0, calc(var(--abre-arriba) * -116%), 0)
+             rotate(calc(var(--abre-arriba) * -2deg))
+             scale(calc(1 + var(--abre-arriba) * .06));
+}
+/* Los laterales se abren como cortinas y dejan un filo de rosas de marco. */
+.velo-izq{
+  width:80%; left:-10%; top:-4%;
+  transform: translate3d(calc(var(--abre) * -80%), calc(var(--abre) * 7%), 0)
+             rotate(calc(var(--abre) * -6deg))
+             scale(calc(1 + var(--abre) * .07));
+}
+.velo-der{
+  width:95%; right:-12%; top:-3%;
+  transform: translate3d(calc(var(--abre) * 80%), calc(var(--abre) * 8%), 0)
+             rotate(calc(var(--abre) * 5deg))
+             scale(calc(1 + var(--abre) * .07));
+}
+
+/* el papel rasgado muerde la foto por arriba y por abajo */
+.costura-foto{
+  left:0; width:100%; z-index:3;
+  height:clamp(24px,5.6vw,34px);
+  filter:none;
+}
+.costura-foto.arriba{ top:-1px; }
+.costura-foto.abajo{ top:auto; bottom:-1px; transform:rotate(180deg); }
+
+.retrato-vacio{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+  padding:26px; text-align:center;
+}
+.retrato-vacio img{ width:78px; height:auto; opacity:.5; transform:none; }
+.retrato-vacio p{
+  margin:0; font-family:var(--sans); font-weight:300; font-size:var(--t-micro);
+  letter-spacing:.26em; text-transform:uppercase; color:var(--tinta-tenue);
+  line-height:2;
+}
+
+/* ── fecha y cuenta regresiva ── */
+.fecha-grande{ text-align:center; }
+.fecha-dia{
+  font-family:var(--serif); font-weight:300;
+  font-size:clamp(44px,14vw,64px); line-height:1; color:var(--tinta);
+  display:block;
+}
+.fecha-mes{
+  font-family:var(--sans); font-weight:300; font-size:var(--t-eti);
+  letter-spacing:.42em; text-indent:.42em; text-transform:uppercase;
+  color:var(--tinta-suave); display:block; margin-top:12px;
+}
+.fecha-pendiente{
+  font-family:var(--serif); font-style:italic; font-weight:300;
+  font-size:clamp(24px,7vw,30px); color:var(--tinta-suave);
+}
+
+.cuenta{
+  display:grid; grid-template-columns:repeat(4,1fr);
+  margin:34px auto 0; max-width:360px;
+}
+.cuenta-celda{
+  display:flex; flex-direction:column; align-items:center; gap:7px;
+  padding:0 2px; position:relative;
+}
+.cuenta-celda + .cuenta-celda::before{
+  content:''; position:absolute; left:0; top:12%; bottom:26%; width:1px;
+  background:linear-gradient(180deg,transparent,var(--rosa-sombra),transparent);
+}
+.cuenta-celda b{
+  font-family:var(--serif); font-weight:400; font-size:clamp(28px,8vw,36px);
+  line-height:1; color:var(--tinta); font-variant-numeric:tabular-nums;
+}
+.cuenta-celda span{
+  font-family:var(--sans); font-weight:300; font-size:var(--t-micro);
+  letter-spacing:.26em; text-indent:.26em; text-transform:uppercase;
+  color:var(--tinta-tenue);
+}
+
+/* ── sedes ── */
+.sedes{ margin-top:46px; display:flex; flex-direction:column; gap:26px; }
+.sede{
+  background:var(--blanco-calido);
+  border:1px solid rgba(224,180,156,.5);
+  padding: 30px 24px 26px;
+  text-align:center;
+  box-shadow: 0 14px 34px -22px rgba(118,80,66,.45);
+  position:relative;
+}
+.sede::before{
+  content:''; position:absolute; inset:5px; border:1px solid rgba(224,180,156,.3);
+  pointer-events:none;
+}
+.sede-tipo{
+  font-family:var(--sans); font-weight:400; font-size:var(--t-micro);
+  letter-spacing:.4em; text-indent:.4em; text-transform:uppercase;
+  color:var(--oro); margin:0 0 12px;
+}
+.sede-nombre{
+  font-family:var(--serif); font-weight:400; font-size:clamp(23px,6.4vw,27px);
+  line-height:1.25; margin:0 0 8px; color:var(--tinta);
+}
+.sede-hora{
+  font-family:var(--sans); font-weight:300; font-size:var(--t-dato);
+  letter-spacing:.2em; color:var(--tinta-suave); margin:0 0 10px;
+}
+.sede-dir{
+  font-family:var(--serif); font-weight:300; font-size:var(--t-texto); line-height:1.6;
+  color:var(--tinta-suave); margin:0 0 20px; max-width:28ch; margin-inline:auto;
+}
+
+/* ── botones ── */
+.boton{
+  display:inline-flex; align-items:center; justify-content:center; gap:.7em;
+  font-family:var(--sans); font-weight:400; font-size:var(--t-accion);
+  letter-spacing:.3em; text-indent:.3em; text-transform:uppercase;
+  color:var(--tinta); text-decoration:none;
+  padding:15px 26px; border:1px solid var(--oro);
+  background:linear-gradient(180deg, rgba(255,255,255,.7), rgba(240,201,199,.22));
+  transition: background .5s var(--curva), color .5s var(--curva), transform .5s var(--curva);
+  cursor:pointer;
+}
+.boton:hover,.boton:focus-visible{
+  background:linear-gradient(180deg, var(--rosa-pastel), var(--rosa-sombra));
+  color:#53332E;
+}
+.boton:focus-visible{ outline:2px solid var(--oro); outline-offset:4px; }
+.boton-principal{
+  padding:19px 34px; font-size:var(--t-accion);
+  border-color:var(--oro);
+  background:linear-gradient(180deg,#F6D9D4,#E9BCB8);
+  box-shadow:0 14px 30px -16px rgba(150,95,80,.6);
+}
+.boton[aria-disabled="true"]{
+  border-color:rgba(192,138,110,.45); color:var(--tinta-tenue);
+  background:linear-gradient(180deg, rgba(255,255,255,.5), rgba(240,201,199,.12));
+  cursor:default; box-shadow:none;
+}
+
+/* ── itinerario ── */
+.linea-tiempo{ position:relative; margin-top:16px; padding-left:62px; }
+.linea-riel{
+  position:absolute; left:25px; top:10px; bottom:0; width:1px;
+  background:rgba(224,180,156,.42);
+}
+.linea-riel i{
+  position:absolute; inset:0; display:block; background:var(--oro);
+  transform:scaleY(var(--avance,0)); transform-origin:top;
+  transition:transform .12s linear;
+}
+#momentos{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:30px; }
+.momento{ position:relative; display:flex; align-items:center; gap:16px; --pintado:1; }
+.momento::before{
+  content:''; position:absolute; left:-41px; top:50%; width:7px; height:7px;
+  margin-top:-3.5px; border-radius:50%;
+  background:var(--marfil); border:1px solid var(--oro);
+  transition: background .6s var(--curva), transform .6s var(--curva);
+}
+.momento.alcanzado::before{ background:var(--oro); transform:scale(1.25); }
+/* El icono, dos veces: la marca de agua debajo y el color encima, que se va
+   pintando de abajo arriba conforme la línea del itinerario lo alcanza. */
+.icono{ position:relative; width:46px; height:46px; flex:none; }
+.icono img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
+.icono-agua{ opacity:.24; filter:grayscale(.5) brightness(1.06); }
+.icono-color{
+  -webkit-mask-image: linear-gradient(to top,
+            #000 calc(var(--pintado) * 124% - 14%),
+            transparent calc(var(--pintado) * 124%));
+          mask-image: linear-gradient(to top,
+            #000 calc(var(--pintado) * 124% - 14%),
+            transparent calc(var(--pintado) * 124%));
+}
+.momento-hora{
+  font-family:var(--sans); font-weight:400; font-size:var(--t-eti);
+  letter-spacing:.24em; text-transform:uppercase; color:var(--oro);
+  margin:0 0 3px;
+}
+.momento-titulo{
+  font-family:var(--serif); font-weight:400; font-size:22px; line-height:1.2;
+  margin:0; color:var(--tinta);
+}
+
+.vestimenta{ text-align:center; }
+.vestimenta-eti{
+  font-family:var(--sans); font-weight:300; font-size:var(--t-micro);
+  letter-spacing:.4em; text-indent:.4em; text-transform:uppercase;
+  color:var(--tinta-tenue); margin:0 0 8px;
+}
+.vestimenta-cod{
+  font-family:var(--serif); font-weight:400; font-size:24px; margin:0; color:var(--tinta);
+}
+.vestimenta-nota{
+  font-family:var(--serif); font-style:italic; font-weight:300; font-size:var(--t-texto);
+  color:var(--tinta-suave); margin:6px 0 0;
+}
+
+/* ── cierre ── */
+.s-cierre .envoltorio{ text-align:center; }
+.accion{ margin-top:38px; }
+.accion-nota{
+  font-family:var(--sans); font-weight:300; font-size:var(--t-eti);
+  letter-spacing:.2em; color:var(--tinta-tenue); margin:14px 0 0;
+}
+/* ── la rúbrica: firma y lacre, como en la papelería impresa ── */
+.rubrica{
+  display:flex; flex-direction:column; align-items:center;
+  margin-top:clamp(46px, 11vw, 62px);
+}
+.rubrica .filete{ width:116px; margin:0 0 clamp(22px,5.4vw,30px); }
+.rubrica-eti{
+  font-family:var(--sans); font-weight:300; font-size:var(--t-micro);
+  letter-spacing:.44em; text-indent:.44em; text-transform:uppercase;
+  color:var(--tinta-tenue);
+}
+.rubrica-firma{
+  font-family:var(--firma); font-weight:400;
+  font-size:clamp(54px,17vw,74px); line-height:1;
+  color:var(--tinta); margin:.1em 0 0;
+}
+.sello{
+  width:clamp(76px,22vw,94px); height:auto;
+  margin-top:clamp(26px,6.5vw,36px);
+  filter: drop-shadow(0 5px 11px rgba(138,92,74,.32));
+}
+.rubrica-pie{
+  margin:clamp(30px,7.5vw,40px) 0 0;
+  font-family:var(--sans); font-weight:300; font-size:var(--t-eti);
+  letter-spacing:.36em; text-indent:.36em; text-transform:uppercase;
+  color:var(--tinta-tenue); line-height:2.4; text-align:center;
+}
+
+/* ── formulario de confirmación ── */
+.form-rsvp{ display:flex; flex-direction:column; gap:18px; text-align:left; }
+.form-rsvp label{ display:flex; flex-direction:column; gap:7px; }
+.form-rsvp span{
+  font-family:var(--sans); font-weight:300; font-size:var(--t-micro);
+  letter-spacing:.3em; text-indent:.3em; text-transform:uppercase;
+  color:var(--tinta-tenue);
+}
+.form-rsvp input,.form-rsvp select,.form-rsvp textarea{
+  font-family:var(--serif); font-size:17px; color:var(--tinta);
+  background:rgba(255,255,255,.72);
+  border:1px solid rgba(224,180,156,.65); border-radius:0;
+  padding:13px 14px; width:100%; -webkit-appearance:none; appearance:none;
+}
+.form-rsvp input:focus,.form-rsvp select:focus,.form-rsvp textarea:focus{
+  outline:none; border-color:var(--oro); background:#fff;
+}
+.form-rsvp .boton{ align-self:center; margin-top:6px; }
+.form-rsvp textarea{ resize:vertical; }
+
+/* ── la rosa que se desprende y recorre la invitación ── */
+.petalo{
+  /* z-index 1: la rosa viaja POR DEBAJO del texto y de las tarjetas, y por
+     encima del papel. Antes iba por delante de todo y se posaba sobre los
+     títulos; así se desliza tras ellos, que es como se mueve un pétalo de
+     verdad sobre una hoja escrita. */
+  position:fixed; z-index:1; left:50%; top:0;
+  width:clamp(54px, 14.5vw, 76px); aspect-ratio:1128/1048;
+  display:block;
+  /* la sombra se apaga al posarse: la flor del cierre no proyecta ninguna */
+  filter: drop-shadow(0 calc(5px * var(--sombra-rosa,1)) calc(11px * var(--sombra-rosa,1))
+                      rgba(120,80,66, calc(.26 * var(--sombra-rosa,1))));
+  pointer-events:none; opacity:0;
+  transition: opacity .42s ease;
+  transform: translate3d(calc(var(--px,0) * 1px - 50%), calc(var(--py,0) * 1px), 0)
+             rotate(calc(var(--giro,0) * 1deg))
+             scale(var(--esc,1));
+  will-change: transform, opacity;
+}
+
+/* Tres vistas de la misma rosa. Se cruzan según la fase del giro, y así
+   parece que da vueltas en el aire en vez de rotar en plano. */
+.petalo-cara{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:contain; opacity:0;
+}
+
+/* ── control de audio ── */
+.audio{
+  position:fixed; right:16px; z-index:30;
+  bottom:calc(16px + env(safe-area-inset-bottom));
+  width:46px; height:46px; border-radius:50%;
+  border:1px solid rgba(192,138,110,.55);
+  background:rgba(253,248,242,.86);
+  backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);
+  box-shadow:0 8px 22px -10px rgba(118,80,66,.5);
+  display:grid; place-items:center; cursor:pointer;
+  transition:transform .4s var(--curva), opacity .4s;
+}
+.audio:focus-visible{ outline:2px solid var(--oro); outline-offset:3px; }
+.audio-ondas{ display:flex; align-items:center; gap:3px; height:15px; }
+.audio-ondas i{
+  width:2px; height:5px; background:var(--oro); display:block;
+  transition:height .3s var(--curva);
+}
+.audio[aria-pressed="true"] .audio-ondas i{ animation: onda 1.15s ease-in-out infinite; }
+.audio[aria-pressed="true"] .audio-ondas i:nth-child(2){ animation-delay:.18s; }
+.audio[aria-pressed="true"] .audio-ondas i:nth-child(3){ animation-delay:.36s; }
+@keyframes onda{ 0%,100%{height:5px} 50%{height:14px} }
+
+/* ── marcadores de pendiente / vista previa ── */
+.pendiente{
+  border:0; background:none;
+  padding:16px 10px 0; margin:26px 0 0; text-align:center;
+  font-family:var(--sans); font-weight:300; font-size:10.5px;
+  letter-spacing:.3em; text-indent:.3em; color:#B98F93;
+  text-transform:uppercase; line-height:2.1;
+  position:relative;
+}
+.pendiente::before{
+  content:''; position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:48px; border-top:1px dashed rgba(200,130,138,.6);
+}
+/* cuando una sección entera está vacía, el marcador sí ocupa su sitio */
+.seccion > .envoltorio > .pendiente,
+#sedes > .pendiente{
+  padding:34px 18px; font-size:10.5px;
+  border:1px dashed rgba(200,130,138,.5);
+}
+.seccion > .envoltorio > .pendiente::before,
+#sedes > .pendiente::before{ display:none; }
+.aviso-previa{
+  position:fixed; z-index:40;
+  /* arriba: abajo chocaba con «Toca para abrir» y con «Desliza», que van
+     centrados al pie de la portada */
+  left:calc(14px + env(safe-area-inset-left));
+  top:calc(14px + env(safe-area-inset-top));
+  white-space:nowrap; opacity:.92;
+  font-family:var(--sans); font-weight:400; font-size:10px;
+  letter-spacing:.2em; text-transform:uppercase;
+  color:#7A4E4E; background:rgba(247,230,226,.92);
+  border:1px solid rgba(200,130,138,.45);
+  padding:6px 14px; border-radius:999px;
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  pointer-events:none;
+}
+
+/* ── revelados ──
+   Por defecto TODO se ve. Esconderlo es cosa del JavaScript, que añade .anima
+   al cargar: así, si el script no llega a ejecutarse, la invitación se lee
+   entera aunque sin animaciones. Al revés —esconder por CSS y mostrar por JS—
+   un fallo de carga dejaría la página vacía. */
+.revela{
+  transition: opacity 1.05s var(--curva), transform 1.05s var(--curva);
+  transition-delay: calc(var(--i,0) * 90ms);
+}
+body.anima .revela{ opacity:0; transform:translateY(14px); }
+body.anima .revela.visible{ opacity:1; transform:none; }
+
+/* ═══════════════════ MOVIMIENTO REDUCIDO ═══════════════════ */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important; animation-iteration-count:1 !important;
+    transition-duration:.001ms !important; scroll-behavior:auto !important;
+  }
+  .revela{ opacity:1; transform:none; }
+  .carta > *{ opacity:1; transform:none; }
+  .flor{ transform:rotate(var(--giro,0deg)); }
+  .retrato-marco{ --abre:1; --abre-arriba:1; }
+  .linea-riel i{ transform:scaleY(1); }
+  .momento{ --pintado:1; }
+  .petalo{ display:none; }
+}

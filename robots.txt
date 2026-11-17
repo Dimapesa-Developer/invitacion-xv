@@ -1,0 +1,5 @@
+# Esta invitación lleva el nombre y la fotografía de una menor.
+# No se quiere en buscadores. Esto no la hace privada: quien tenga el
+# enlace puede abrirla igual.
+User-agent: *
+Disallow: /

@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<!-- fuera de los buscadores: aquí van el nombre y la foto de una menor -->
+<meta name="robots" content="noindex, nofollow, noarchive, noimageindex">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mis XV años · Camila Renata</title>
+<meta name="description" content="Invitación web de XV años. Demostración con datos inventados.">
+<meta name="theme-color" content="#F7EADF">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500&family=Parisienne&display=swap">
+<link rel="preload" as="image" href="assets/apertura-poster.webp">
+<link rel="stylesheet" href="styles.css?v=1794937501">
+</head>
+<body class="sin-abrir">
+
+<p class="salta"><a href="#contenido">Saltar al contenido de la invitación</a></p>
+
+<!-- ══════════════ 1 · EL SOBRE ══════════════ -->
+<section class="pantalla-sobre" id="sobre">
+  <div class="sobre-centro">
+
+    <button type="button" class="escenario" id="escenario"
+            aria-label="Abrir la invitación">
+     <span class="lienzo">
+      <!-- 1 · el sobre cerrado, quieto, hasta que tocan -->
+      <img class="capa" id="capa-poster" src="assets/apertura-poster.webp" alt=""
+           width="1080" height="1920" fetchpriority="high">
+
+      <!-- 2 · los dos vídeos, uno detrás de otro. Son dos elementos y no uno
+           con la fuente cambiada: así el segundo ya está descargado y pintado
+           cuando acaba el primero, y el corte no parpadea. -->
+      <video class="capa" id="video-1" muted playsinline preload="auto"
+             aria-hidden="true" src="assets/apertura-1.mp4"></video>
+      <video class="capa" id="video-2" muted playsinline preload="none"
+             aria-hidden="true"></video>
+
+      <!-- 3 · la hoja: es el último fotograma del segundo vídeo, así que el
+           relevo no se ve. Hace falta porque el navegador tira la imagen de un
+           vídeo pausado al salir de pantalla y al volver dibuja la primera. -->
+      <img class="capa" id="capa-final" src="assets/apertura-final.webp" alt=""
+           width="1080" height="1920" fetchpriority="low">
+
+      <!-- 3b · y la hoja se asienta: el fotograma del vídeo recorta un 18 %
+           del ancho, justo donde está el borde deckle. Esta capa trae la hoja
+           entera y entra creciendo hacia su tamaño real, así que el reencuadre
+           se lee como el papel posándose y no como un salto. -->
+      <span class="capa hoja-posada" id="hoja-posada" aria-hidden="true">
+        <img src="assets/hoja.webp" alt="" width="909" height="1243"
+             fetchpriority="low">
+      </span>
+
+      <!-- 4 · y encima, las letras -->
+      <span class="carta" id="carta" aria-hidden="true">
+        <span class="carta-cintillo" style="--i:0">Mis XV años</span>
+        <span class="filete" style="--i:1"><i></i><b></b><i></i></span>
+        <span class="carta-nombre" style="--i:2">Camila Renata</span>
+        <span class="carta-apellidos" style="--i:3">Herrera Valdés</span>
+        <span class="carta-fecha" id="carta-fecha" style="--i:4">Fecha por confirmar</span>
+      </span>
+     </span>
+    </button>
+
+
+    <!-- «Toca para abrir» y «Desliza» ocupan el mismo sitio: una se desvanece y
+         la otra aparece justo donde estaba, pegada al sobre. -->
+    <div class="pie-sobre">
+    <div class="llamada" id="llamada">
+      <span class="llamada-sello" aria-hidden="true"></span>
+      <span class="llamada-texto">Toca para abrir</span>
+    </div>
+
+    <div class="baja" id="baja" aria-hidden="true">
+      <span>Desliza</span>
+      <svg viewBox="0 0 18 26" width="18" height="26" fill="none" aria-hidden="true">
+        <path d="M9 1v21M3 16l6 6 6-6" stroke="currentColor" stroke-width="1.1"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main id="contenido">
+
+<!-- ══════════════ 2 · LA NOTA ══════════════ -->
+<!-- ══════════════ 2 · LA ILUSIÓN ══════════════ -->
+<section class="seccion s-nota" id="nota">
+  <div class="costura costura-arriba invertida" aria-hidden="true"></div>
+
+  <div class="envoltorio">
+    <p class="parrafo-grande revela" id="msj-presentacion" style="--i:0"></p>
+  </div>
+</section>
+
+<!-- ══════════════ 3 · LA FESTEJADA ══════════════ -->
+<section class="seccion s-festejada" id="festejada">
+  <div class="costura costura-arriba" aria-hidden="true"></div>
+  <img class="flor flor-festejada" src="assets/flor-rosa.webp" alt="" loading="lazy" data-parallax="0.09">
+
+  <!-- el puente: lo último que se lee antes de que se abran las rosas -->
+  <div class="envoltorio">
+    <p class="parrafo-puente revela" id="msj-puente" style="--i:0"></p>
+  </div>
+
+  <!-- La escena se queda clavada en pantalla mientras dura el efecto. Es lo
+       que permite darle recorrido de scroll sin dejar papel en blanco: la
+       fotografía no se mueve, lo que avanza es el desvelado. -->
+  <div class="escena-festejada">
+
+  <!-- la fotografía asoma por un rasgado del papel -->
+  <figure class="retrato revela" id="retrato" style="--i:2">
+    <div class="retrato-marco">
+      <img id="foto-portada" alt="Fotografía de la festejada" hidden>
+      <div class="retrato-vacio" id="retrato-vacio">
+        <img src="assets/flor-hojas.webp" alt="" loading="lazy">
+        <p>Aquí irá la fotografía</p>
+      </div>
+      <!-- tres paneles de rosas: arriba sube, izquierda y derecha se abren -->
+      <img class="velo velo-arriba" src="assets/panel-arriba.webp" alt="" loading="lazy">
+      <img class="velo velo-izq" src="assets/panel-izq.webp" alt="" loading="lazy">
+      <img class="velo velo-der" src="assets/panel-der.webp" alt="" loading="lazy">
+    </div>
+    <span class="costura costura-foto arriba" aria-hidden="true"></span>
+    <span class="costura costura-foto abajo" aria-hidden="true"></span>
+  </figure>
+
+  <!-- la invitación de verdad: aparece cuando las rosas terminan de abrirse -->
+  <div class="envoltorio">
+    <div class="invitacion" id="invitacion">
+      <p class="antetitulo inv-ep">Te invito</p>
+      <h1 class="titulo-festejada inv-nom">
+        <span class="firma" id="nombre-grande">Camila Renata</span>
+      </h1>
+      <p class="inv-pie"><span class="inv-pie-a">Te invito a mis</span><span class="inv-xv">XV años</span></p>
+    </div>
+  </div>
+
+  </div><!-- /escena-festejada -->
+</section>
+
+<!-- ══════════════ 3 · CUÁNDO Y DÓNDE ══════════════ -->
+<section class="seccion s-cuando" id="cuando">
+  <div class="costura costura-arriba invertida" aria-hidden="true"></div>
+  <img class="flor flor-cuando" src="assets/flor-ramo.webp" alt="" loading="lazy" data-parallax="0.07">
+
+  <div class="envoltorio">
+    <p class="antetitulo revela" style="--i:0">Cuándo</p>
+    <h2 class="titulo revela" style="--i:1">La fecha</h2>
+
+    <div class="fecha-grande revela" id="fecha-grande" style="--i:2"></div>
+
+    <div class="cuenta" id="cuenta" hidden>
+      <div class="cuenta-celda"><b id="cr-d">00</b><span>días</span></div>
+      <div class="cuenta-celda"><b id="cr-h">00</b><span>horas</span></div>
+      <div class="cuenta-celda"><b id="cr-m">00</b><span>min</span></div>
+      <div class="cuenta-celda"><b id="cr-s">00</b><span>seg</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════ 4b · DÓNDE ══════════════ -->
+<section class="seccion s-donde" id="donde">
+  <div class="costura costura-arriba" aria-hidden="true"></div>
+
+  <div class="envoltorio">
+    <p class="antetitulo revela" style="--i:0">Dónde</p>
+    <h2 class="titulo revela" style="--i:1">Los lugares</h2>
+
+    <div class="sedes" id="sedes"></div>
+  </div>
+</section>
+
+<!-- ══════════════ 4 · ITINERARIO ══════════════ -->
+<section class="seccion s-itinerario" id="itinerario">
+  <div class="costura costura-arriba" aria-hidden="true"></div>
+  <img class="flor flor-itin" src="assets/flor-capullos.webp" alt="" loading="lazy" data-parallax="0.11">
+
+  <div class="envoltorio">
+    <p class="antetitulo revela" style="--i:0">Así celebraremos</p>
+    <h2 class="titulo revela" style="--i:1">Itinerario</h2>
+
+    <div class="linea-tiempo" id="linea-tiempo">
+      <span class="linea-riel" aria-hidden="true"><i id="linea-avance"></i></span>
+      <ol id="momentos"></ol>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════ 5 · VESTIMENTA ══════════════ -->
+<section class="seccion s-vestir" id="vestir" hidden>
+  <div class="costura costura-arriba invertida" aria-hidden="true"></div>
+
+  <div class="envoltorio">
+    <div class="vestimenta" id="vestimenta" hidden></div>
+  </div>
+</section>
+
+<!-- ══════════════ 6 · CONFIRMACIÓN ══════════════ -->
+<section class="seccion s-confirmar" id="confirmar">
+  <div class="costura costura-arriba" aria-hidden="true"></div>
+
+  <div class="envoltorio">
+    <p class="antetitulo revela" style="--i:0">Nos vemos en mis XV</p>
+    <p class="parrafo-grande revela" id="msj-cierre" style="--i:1"></p>
+    <div class="accion revela" id="accion" style="--i:2"></div>
+  </div>
+</section>
+
+<!-- ══════════════ 7 · DESPEDIDA ══════════════ -->
+<section class="seccion s-cierre" id="cierre">
+  <div class="costura costura-arriba invertida" aria-hidden="true"></div>
+  <!-- el cierre se monta en tres piezas: la rosa donde aterriza la que cae,
+       y el follaje de cada lado, que sale de detrás cuando ya está posada -->
+  <span class="flor flor-cierre-b" aria-hidden="true" data-parallax="0.09">
+    <img class="cierre-hoja cierre-izq" src="assets/flor-bajo-izq.webp" alt="" loading="lazy">
+    <img class="cierre-hoja cierre-der" src="assets/flor-bajo-der.webp" alt="" loading="lazy">
+    <img class="cierre-rosa" src="assets/flor-bajo-rosa.webp" alt="" loading="lazy">
+  </span>
+
+  <div class="envoltorio">
+    <!-- la firma, sellada en lacre, como en la papelería impresa -->
+    <div class="rubrica revela" style="--i:0">
+      <span class="filete"><i></i><b></b><i></i></span>
+      <span class="rubrica-eti">Con cariño</span>
+      <span class="firma rubrica-firma">Camila</span>
+      <p class="rubrica-pie" id="rubrica-pie"></p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- la rosa que se desprende de la tarjeta y baja con el scroll -->
+<span class="petalo" id="petalo" aria-hidden="true">
+  <img class="petalo-cara" id="rosa-frente" src="assets/rosa-frente.webp" alt="">
+  <img class="petalo-cara" id="rosa-tres"   src="assets/rosa-tres.webp"   alt="">
+  <img class="petalo-cara" id="rosa-perfil" src="assets/rosa-perfil.webp" alt="">
+</span>
+
+<button type="button" class="audio" id="audio" hidden aria-pressed="false"
+        aria-label="Activar la música">
+  <span class="audio-ondas" aria-hidden="true"><i></i><i></i><i></i></span>
+</button>
+
+<div class="aviso-previa" id="aviso-previa" hidden>
+  Vista previa
+</div>
+
+<script src="datos.js?v=1794937501"></script>
+<script src="script.js?v=1794937501"></script>
+</body>
+</html>

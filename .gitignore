@@ -1,0 +1,11 @@
+# Material de trabajo: pesa 57 MB y no hace falta para que la web funcione.
+# Sigue en el Escritorio, aquí solo se excluye de lo que se publica.
+imagenes/
+nuevas imagenes/
+originales-sin-comprimir/
+para-el-video/
+nuevo video 1.mp4
+nuevo video 2.mp4
+hoja de papel.png
+
+.DS_Store
